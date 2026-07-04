@@ -44,8 +44,6 @@ If you're getting started and need assistance or face any bugs, join our active 
 <a href="https://discord.com/invite/n6EdbFJ" target="_blank"><img src="https://github.com/sujatagunale/EasyRead/assets/151519281/618f4872-1e10-42da-8213-1d69e486d02e" /></a>
 
 ## <a name="tech-stack">⚙️ Tech Stack</a>
-- **[Arcjet](https://jsm.dev/snapcast-arcjet)** is a developer-first security platform that integrates bot protection, rate limiting, email validation, and attack protection into your application with minimal code. It offers customizable protection for forms, login pages, and API routes, supporting frameworks like Node.js, Next.js, Deno, Bun, Remix, SvelteKit, and NestJS.
-
 - **[Bunny.net](https://jsm.dev/snapcast-bunny)** is a developer-friendly video delivery platform offering global CDN, edge storage, adaptive streaming, and a customizable player. It simplifies video management with features like automatic encoding, token-based security, and real-time analytics. Ideal for seamless, secure, and scalable video streaming.
 
 - **[Better Auth](https://www.better-auth.com/)** is a TypeScript-first authentication and authorization library that simplifies implementing secure login, two-factor authentication, and social sign-ins, all while supporting multi-tenancy. 
@@ -58,7 +56,7 @@ If you're getting started and need assistance or face any bugs, join our active 
   
 - **[TypeScript](https://www.typescriptlang.org/)** is a superset of JavaScript that adds static typing, providing better tooling, code quality, and error detection for developers, making it ideal for building large-scale applications.
 
-- **[Xata](https://xata.io)** is a serverless PostgreSQL platform offering auto-scaling, zero-downtime schema migrations, real-time branching, and built-in full-text search. It provides a spreadsheet-like UI for intuitive data management, enhancing modern development workflows.
+- **[Neon](https://neon.tech/)** is a serverless PostgreSQL platform with branching, autoscaling, and a serverless driver that works well with Drizzle ORM in Next.js applications.
 
 
 ## <a name="features">🔋 Features</a>
@@ -73,8 +71,6 @@ If you're getting started and need assistance or face any bugs, join our active 
 
 👉 **Privacy Control**: Toggle video visibility between public and private, ensuring full control over your content.  
 
-👉 **Arcjet Integration**: Easily implement bot protection, rate limiting, email validation, and attack protection with minimal code, enhancing your app's security.
-
 👉 **Metadata**: Access video metadata, including unique video ID and URL, for easy sharing and referencing.  
 
 👉 **Search Functionality**: Find your videos quickly with an intuitive search bar, streamlining navigation.  
@@ -83,7 +79,7 @@ If you're getting started and need assistance or face any bugs, join our active 
 
 👉 **Modern UI/UX**: Clean, responsive design built with Tailwind CSS for a sleek user experience.  
 
-👉 **Database Integration**: Utilize Xata for real-time, scalable database management.  
+👉 **Database Integration**: Utilize Neon PostgreSQL for scalable database management.  
 
 👉 **Type-Safe Queries**: Benefit from Drizzle ORM’s type-safe queries for secure and efficient database interactions.  
 
@@ -131,10 +127,8 @@ Create a new file named `.env` in the root of your project and add the following
 # Next.js
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
 
-# [Xata] Configuration used by the CLI and the SDK
-# Make sure your framework/tooling loads this file on startup to have it available for the SDK
-XATA_API_KEY=
-DATABASE_URL_POSTGRES=
+# Neon PostgreSQL
+DATABASE_URL=
 
 # Google
 GOOGLE_CLIENT_ID=
@@ -149,12 +143,9 @@ BUNNY_STORAGE_ACCESS_KEY=
 BUNNY_LIBRARY_ID=
 BUNNY_STREAM_ACCESS_KEY=
 
-#ArcJet
-ARCJET_API_KEY=
-XATA_API_KEY=
 ```
 
-Replace the placeholder values with your actual credentials. You can obtain these credentials by signing up on: [Better-Auth](https://www.better-auth.com), [Google Cloud](https://console.cloud.google.com), [Bunny.net](https://jsm.dev/snapcast-bunny), [Xata.io](https://xata.io), [Arcjet](https://jsm.dev/snapcast-arcjet).
+Replace the placeholder values with your actual credentials. You can obtain these credentials by signing up on: [Better-Auth](https://www.better-auth.com), [Google Cloud](https://console.cloud.google.com), [Bunny.net](https://jsm.dev/snapcast-bunny), [Neon](https://neon.tech/).
 
 **Running the Project**
 

@@ -1,8 +1,8 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { ilike, sql } from "drizzle-orm";
-import { videos } from "@/drizzle/schema";
-import { DEFAULT_VIDEO_CONFIG, DEFAULT_RECORDING_CONFIG } from "@/constants";
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+import { ilike, sql } from 'drizzle-orm';
+import { videos } from '@/drizzle/schema';
+import { DEFAULT_VIDEO_CONFIG, DEFAULT_RECORDING_CONFIG } from '@/constants';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -11,7 +11,7 @@ export function cn(...inputs: ClassValue[]) {
 export const updateURLParams = (
   currentParams: URLSearchParams,
   updates: Record<string, string | null | undefined>,
-  basePath: string = "/"
+  basePath: string = '/',
 ): string => {
   const params = new URLSearchParams(currentParams.toString());
 
@@ -37,12 +37,12 @@ export const getEnv = (key: string): string => {
 // API fetch helper with required Bunny CDN options
 export const apiFetch = async <T = Record<string, unknown>>(
   url: string,
-  options: Omit<ApiFetchOptions, "bunnyType"> & {
-    bunnyType: "stream" | "storage";
-  }
+  options: Omit<ApiFetchOptions, 'bunnyType'> & {
+    bunnyType: 'stream' | 'storage';
+  },
 ): Promise<T> => {
   const {
-    method = "GET",
+    method = 'GET',
     headers = {},
     body,
     expectJson = true,
@@ -50,17 +50,17 @@ export const apiFetch = async <T = Record<string, unknown>>(
   } = options;
 
   const key = getEnv(
-    bunnyType === "stream"
-      ? "BUNNY_STREAM_ACCESS_KEY"
-      : "BUNNY_STORAGE_ACCESS_KEY"
+    bunnyType === 'stream'
+      ? 'BUNNY_STREAM_ACCESS_KEY'
+      : 'BUNNY_STORAGE_ACCESS_KEY',
   );
 
   const requestHeaders = {
     ...headers,
     AccessKey: key,
-    ...(bunnyType === "stream" && {
-      accept: "application/json",
-      ...(body && { "content-type": "application/json" }),
+    ...(bunnyType === 'stream' && {
+      accept: 'application/json',
+      ...(body && { 'content-type': 'application/json' }),
     }),
   };
 
@@ -71,43 +71,66 @@ export const apiFetch = async <T = Record<string, unknown>>(
   };
 
   const response = await fetch(url, requestOptions);
+  const responseBody = await response.text();
 
   if (!response.ok) {
-    throw new Error(`API error ${response.text()}`);
+    const errorMessage = `API request failed for ${url} with status ${response.status}. Response body: ${responseBody || '(empty)'}`;
+    const error = new Error(errorMessage);
+    (error as Error & { cause?: unknown }).cause = {
+      status: response.status,
+      body: responseBody,
+      url,
+    };
+    throw error;
   }
 
-  if (method === "DELETE" || !expectJson) {
+  if (method === 'DELETE' || !expectJson) {
     return true as T;
   }
 
-  return await response.json();
+  if (!responseBody) {
+    return {} as T;
+  }
+
+  try {
+    return JSON.parse(responseBody) as T;
+  } catch (error) {
+    const parseError = new Error(
+      `Failed to parse JSON response from ${url}. Response body: ${responseBody}`,
+    );
+    (parseError as Error & { cause?: unknown }).cause = error;
+    throw parseError;
+  }
 };
 
 // Higher order function to handle errors
 export const withErrorHandling = <T, A extends unknown[]>(
-  fn: (...args: A) => Promise<T>
+  fn: (...args: A) => Promise<T>,
 ) => {
   return async (...args: A): Promise<T> => {
     try {
-      const result = await fn(...args);
-      return result;
+      return await fn(...args);
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
-      return errorMessage as unknown as T;
+      console.error('Unhandled error in wrapped action:', error);
+      if (error instanceof Error) {
+        console.error(error.stack ?? error.message);
+        throw error;
+      }
+
+      throw new Error('Unknown error occurred', { cause: error });
     }
   };
 };
 
 export const getOrderByClause = (filter?: string) => {
   switch (filter) {
-    case "Most Viewed":
+    case 'Most Viewed':
       return sql`${videos.views} DESC`;
-    case "Least Viewed":
+    case 'Least Viewed':
       return sql`${videos.views} ASC`;
-    case "Oldest First":
+    case 'Oldest First':
       return sql`${videos.createdAt} ASC`;
-    case "Most Recent":
+    case 'Most Recent':
     default:
       return sql`${videos.createdAt} DESC`;
   }
@@ -118,12 +141,12 @@ export const generatePagination = (currentPage: number, totalPages: number) => {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
   if (currentPage <= 3) {
-    return [1, 2, 3, 4, 5, "...", totalPages];
+    return [1, 2, 3, 4, 5, '...', totalPages];
   }
   if (currentPage >= totalPages - 2) {
     return [
       1,
-      "...",
+      '...',
       totalPages - 4,
       totalPages - 3,
       totalPages - 2,
@@ -133,17 +156,17 @@ export const generatePagination = (currentPage: number, totalPages: number) => {
   }
   return [
     1,
-    "...",
+    '...',
     currentPage - 1,
     currentPage,
     currentPage + 1,
-    "...",
+    '...',
     totalPages,
   ];
 };
 
 export const getMediaStreams = async (
-  withMic: boolean
+  withMic: boolean,
 ): Promise<MediaStreams> => {
   const displayStream = await navigator.mediaDevices.getDisplayMedia({
     video: DEFAULT_VIDEO_CONFIG,
@@ -167,7 +190,7 @@ export const createAudioMixer = (
   ctx: AudioContext,
   displayStream: MediaStream,
   micStream: MediaStream | null,
-  hasDisplayAudio: boolean
+  hasDisplayAudio: boolean,
 ) => {
   if (!hasDisplayAudio && !micStream) return null;
 
@@ -195,8 +218,8 @@ export const setupMediaRecorder = (stream: MediaStream) => {
 
 export const getVideoDuration = (url: string): Promise<number | null> =>
   new Promise((resolve) => {
-    const video = document.createElement("video");
-    video.preload = "metadata";
+    const video = document.createElement('video');
+    video.preload = 'metadata';
     video.onloadedmetadata = () => {
       const duration =
         isFinite(video.duration) && video.duration > 0
@@ -214,7 +237,7 @@ export const getVideoDuration = (url: string): Promise<number | null> =>
 
 export const setupRecording = (
   stream: MediaStream,
-  handlers: RecordingHandlers
+  handlers: RecordingHandlers,
 ): MediaRecorder => {
   const recorder = new MediaRecorder(stream, DEFAULT_RECORDING_CONFIG);
   recorder.ondataavailable = handlers.onDataAvailable;
@@ -225,22 +248,22 @@ export const setupRecording = (
 export const cleanupRecording = (
   recorder: MediaRecorder | null,
   stream: MediaStream | null,
-  originalStreams: MediaStream[] = []
+  originalStreams: MediaStream[] = [],
 ) => {
-  if (recorder?.state !== "inactive") {
+  if (recorder?.state !== 'inactive') {
     recorder?.stop();
   }
 
   stream?.getTracks().forEach((track: MediaStreamTrack) => track.stop());
   originalStreams.forEach((s) =>
-    s.getTracks().forEach((track: MediaStreamTrack) => track.stop())
+    s.getTracks().forEach((track: MediaStreamTrack) => track.stop()),
   );
 };
 
 export const createRecordingBlob = (
-  chunks: Blob[]
+  chunks: Blob[],
 ): { blob: Blob; url: string } => {
-  const blob = new Blob(chunks, { type: "video/webm" });
+  const blob = new Blob(chunks, { type: 'video/webm' });
   const url = URL.createObjectURL(blob);
   return { blob, url };
 };
@@ -249,7 +272,7 @@ export const calculateRecordingDuration = (startTime: number | null): number =>
   startTime ? Math.round((Date.now() - startTime) / 1000) : 0;
 
 export function parseTranscript(transcript: string): TranscriptEntry[] {
-  const lines = transcript.replace(/^WEBVTT\s*/, "").split("\n");
+  const lines = transcript.replace(/^WEBVTT\s*/, '').split('\n');
   const result: TranscriptEntry[] = [];
   let tempText: string[] = [];
   let startTime: string | null = null;
@@ -257,12 +280,12 @@ export function parseTranscript(transcript: string): TranscriptEntry[] {
   for (const line of lines) {
     const trimmedLine = line.trim();
     const timeMatch = trimmedLine.match(
-      /(\d{2}:\d{2}:\d{2})\.\d{3}\s-->\s(\d{2}:\d{2}:\d{2})\.\d{3}/
+      /(\d{2}:\d{2}:\d{2})\.\d{3}\s-->\s(\d{2}:\d{2}:\d{2})\.\d{3}/,
     );
 
     if (timeMatch) {
       if (tempText.length > 0 && startTime) {
-        result.push({ time: startTime, text: tempText.join(" ") });
+        result.push({ time: startTime, text: tempText.join(' ') });
         tempText = [];
       }
       startTime = timeMatch[1] ?? null;
@@ -271,14 +294,14 @@ export function parseTranscript(transcript: string): TranscriptEntry[] {
     }
 
     if (tempText.length >= 3 && startTime) {
-      result.push({ time: startTime, text: tempText.join(" ") });
+      result.push({ time: startTime, text: tempText.join(' ') });
       tempText = [];
       startTime = null;
     }
   }
 
   if (tempText.length > 0 && startTime) {
-    result.push({ time: startTime, text: tempText.join(" ") });
+    result.push({ time: startTime, text: tempText.join(' ') });
   }
 
   return result;
@@ -292,9 +315,9 @@ export function daysAgo(inputDate: Date): string {
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
   if (diffDays <= 0) {
-    return "Today";
+    return 'Today';
   } else if (diffDays === 1) {
-    return "1 day ago";
+    return '1 day ago';
   } else {
     return `${diffDays} days ago`;
   }
@@ -307,5 +330,5 @@ export const createIframeLink = (videoId: string) =>
 export const doesTitleMatch = (videos: any, searchQuery: string) =>
   ilike(
     sql`REPLACE(REPLACE(REPLACE(LOWER(${videos.title}), '-', ''), '.', ''), ' ', '')`,
-    `%${searchQuery.replace(/[-. ]/g, "").toLowerCase()}%`
+    `%${searchQuery.replace(/[-. ]/g, '').toLowerCase()}%`,
   );
