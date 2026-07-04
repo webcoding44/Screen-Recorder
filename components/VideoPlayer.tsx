@@ -58,16 +58,16 @@ const VideoPlayer = ({ videoId, className }: VideoPlayerProps) => {
           <p>Processing video...</p>
         </div>
       ) : (
-        <iframe
-          ref={iframeRef}
-          src={createIframeLink(videoId)}
-          loading="lazy"
-          title="Video player"
-          style={{ border: 0, zIndex: 50 }}
-          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
-          allowFullScreen
-          onLoad={() => setState((prev) => ({ ...prev, isLoaded: true }))}
-        />
+<iframe
+  ref={iframeRef}
+  src={`https://iframe.mediadelivery.net/embed/697009/${videoId}`}
+  loading="lazy"
+  title="Video player"
+  style={{ border: 0, zIndex: 50 }}
+  allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+  allowFullScreen
+  onLoad={() => setState((prev) => ({ ...prev, isLoaded: true }))}
+/>
       )}
     </div>
   );
