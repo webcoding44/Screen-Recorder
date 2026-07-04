@@ -15,12 +15,12 @@ const Navbar = () => {
       <nav>
         <Link href="/">
           <Image
-            src="/assets/icons/logo.svg"
+            src="/assets/icons/play.png"
             alt="SnapChat Logo"
             width={32}
             height={32}
           />
-          <h1>SnapCast</h1>
+          <h1>CaptureHub</h1>
         </Link>
 
         {user && (

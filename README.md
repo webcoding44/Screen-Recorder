@@ -1,176 +1,320 @@
+# 🎥 ScreenFlow
+
 <div align="center">
-  <br />
-    <a href="https://www.youtube.com/watch?v=honnJp7-cCU" target="_blank">
-      <img src="public/readme/hero.jpg" alt="Project Banner">
-    </a>
-  <br />
 
-  <div>
-    <img src="https://img.shields.io/badge/-Next.JS-black?style=for-the-badge&logoColor=white&logo=nextdotjs&color=black" alt="next.js" />
-    <img src="https://img.shields.io/badge/Bunny.net-F47326?style=for-the-badge&logo=bunnyvideo&logoColor=white">
-    <img src="https://img.shields.io/badge/-Tailwind-00BCFF?style=for-the-badge&logo=tailwind-css&logoColor=white" />
-  </div>
+![Banner](/public/assets/images/banner.png)
 
-  <h3 align="center">Full Stack Screen Recording & Video Sharing Platform</h3>
+![Next.js](https://img.shields.io/badge/Next.js-FullStack-black?style=for-the-badge&logo=next.js)
+![Bunny.net](https://img.shields.io/badge/Bunny.net-Video_Storage-FF6600?style=for-the-badge)
+![Better Auth](https://img.shields.io/badge/Better_Auth-Authentication-22C55E?style=for-the-badge)
+![Arcjet](https://img.shields.io/badge/Arcjet-Security-blue?style=for-the-badge)
+![Xata](https://img.shields.io/badge/Xata-Database-7C3AED?style=for-the-badge)
+![Drizzle ORM](https://img.shields.io/badge/Drizzle-ORM-C5F74F?style=for-the-badge)
 
-   <div align="center">
-     Build this project step by step with our detailed tutorial on <a href="" target="_blank"><b>JavaScript Mastery</b></a> YouTube. Join the JSM family!
-    </div>
+### 🚀 AI-Powered Screen Recording & Video Sharing Platform
+
+Record your screen, upload videos, generate AI transcripts, and securely share content through a modern full-stack application.
+
 </div>
 
-## 📋 <a name="table">Table of Contents</a>
+---
 
-1. 🤖 [Introduction](#introduction)
-2. ⚙️ [Tech Stack](#tech-stack)
-3. 🔋 [Features](#features)
-4. 🤸 [Quick Start](#quick-start)
-5. 🔗 [Assets](#links)
-6. 🚀 [More](#more)
+# 📖 Overview
 
-## 🚨 Tutorial
+**ScreenFlow** is a modern full-stack screen recording and video sharing platform that enables users to record their screens, upload videos, generate AI-powered transcripts, and share content securely.
 
-This repository contains the code corresponding to an in-depth tutorial available on our YouTube channel, <a href="https://www.youtube.com/@javascriptmastery/videos" target="_blank"><b>JavaScript Mastery</b></a>.
+Built with **Next.js**, **Bunny.net**, **Better Auth**, **Arcjet**, **Xata**, and **Drizzle ORM**, the platform combines high-performance video hosting, secure authentication, intelligent search, and scalable infrastructure into a production-ready application.
 
-If you prefer visual learning, this is the perfect resource for you. Follow our tutorial to learn how to build projects like these step-by-step in a beginner-friendly manner!
+---
 
-<a href="https://www.youtube.com/watch?v=honnJp7-cCU" target="_blank"><img src="https://github.com/sujatagunale/EasyRead/assets/151519281/1736fca5-a031-4854-8c09-bc110e3bc16d" /></a>
+# ✨ Core Features
 
-## <a name="introduction">🤖 Introduction</a>
+## 🎥 Screen Recording
 
-Built with Next.js and Bunny.net, this Full Stack Screen Recording & Video Sharing Platform includes user authentication with "Better Auth", screen recording, video uploads, and the ability to share videos via link. Users can set videos as public or private, view AI-generated transcripts, and access metadata like video ID and URL. A built-in search bar makes finding content fast and simple.
+Record your screen directly inside the application.
 
-If you're getting started and need assistance or face any bugs, join our active Discord community with over **50k+** members. It's a place where people help each other out.
+### Features
 
-<a href="https://discord.com/invite/n6EdbFJ" target="_blank"><img src="https://github.com/sujatagunale/EasyRead/assets/151519281/618f4872-1e10-42da-8213-1d69e486d02e" /></a>
+- Browser-based screen recording
+- High-quality video capture
+- Instant recording sessions
+- Seamless recording workflow
 
-## <a name="tech-stack">⚙️ Tech Stack</a>
-- **[Bunny.net](https://jsm.dev/snapcast-bunny)** is a developer-friendly video delivery platform offering global CDN, edge storage, adaptive streaming, and a customizable player. It simplifies video management with features like automatic encoding, token-based security, and real-time analytics. Ideal for seamless, secure, and scalable video streaming.
+---
 
-- **[Better Auth](https://www.better-auth.com/)** is a TypeScript-first authentication and authorization library that simplifies implementing secure login, two-factor authentication, and social sign-ins, all while supporting multi-tenancy. 
-  
-- **[Drizzle ORM](https://orm.drizzle.team/)** is a type-safe, lightweight ORM for SQL databases, providing a modern solution for interacting with databases using TypeScript, supporting migrations, queries, and schema management.  
+## ☁️ Video Upload & Storage
 
-- **[Next.js](https://nextjs.org/)** is a powerful React framework that enables the development of fast, scalable web applications with features like server-side rendering, static site generation, and API routes for building full-stack applications. 
+Upload and manage videos with ease.
 
-- **[Tailwind CSS](https://tailwindcss.com/)** is a utility-first CSS framework that allows developers to design custom user interfaces by applying low-level utility classes directly in HTML, streamlining the design process.  
-  
-- **[TypeScript](https://www.typescriptlang.org/)** is a superset of JavaScript that adds static typing, providing better tooling, code quality, and error detection for developers, making it ideal for building large-scale applications.
+### Features
 
-- **[Neon](https://neon.tech/)** is a serverless PostgreSQL platform with branching, autoscaling, and a serverless driver that works well with Drizzle ORM in Next.js applications.
+- Fast video uploads
+- Bunny.net video storage
+- Optimized video delivery
+- Secure cloud storage
 
+---
 
-## <a name="features">🔋 Features</a>
+## 🔗 Video Sharing
 
-👉 **Authentication**: Secure user sign-up and sign-in with Better-Auth & Google.  
+Share videos effortlessly.
 
-👉 **Screen Recording**: Capture your screen directly within the app for seamless video recording.  
+### Features
 
-👉 **Video Uploading**: Effortlessly upload videos with a simple interface, supporting both public and private settings.  
+- Unique shareable links
+- Public & private videos
+- Quick access via URL
+- Easy content distribution
 
-👉 **AI Transcripts**: Get AI-generated transcripts for uploaded videos, making content more accessible and searchable.  
+---
 
-👉 **Privacy Control**: Toggle video visibility between public and private, ensuring full control over your content.  
+## 🤖 AI Transcripts
 
-👉 **Metadata**: Access video metadata, including unique video ID and URL, for easy sharing and referencing.  
+Automatically generate transcripts for uploaded videos.
 
-👉 **Search Functionality**: Find your videos quickly with an intuitive search bar, streamlining navigation.  
+### Features
 
-👉 **Share Videos**: Share videos via unique links for easy access and distribution.  
+- AI-generated transcripts
+- Searchable content
+- Improved accessibility
+- Faster content discovery
 
-👉 **Modern UI/UX**: Clean, responsive design built with Tailwind CSS for a sleek user experience.  
+---
 
-👉 **Database Integration**: Utilize Neon PostgreSQL for scalable database management.  
+## 🔐 Authentication & Security
 
-👉 **Type-Safe Queries**: Benefit from Drizzle ORM’s type-safe queries for secure and efficient database interactions.  
+Secure user accounts and application infrastructure.
 
-👉 **Scalable Tech Stack**: Built with Next.js for a fast, production-ready web application that scales seamlessly.  
+### Features
 
-👉 **Code Reusability**: Leverage reusable components and a modular codebase for efficient development.  
+- Better Auth authentication
+- Google Sign-In
+- Protected user sessions
+- Secure authorization
 
-👉 **Cross-Device Compatibility**: Fully responsive design that works seamlessly across all devices.  
+---
 
-And many more, including enhanced security and optimized video performance!
+## 🛡️ Advanced Protection
 
+Powered by Arcjet security.
 
-## <a name="quick-start">🤸 Quick Start</a>
+### Features
 
-Follow these steps to set up the project locally on your machine.
+- Bot protection
+- Rate limiting
+- Email validation
+- Attack prevention
 
-**Prerequisites**
+---
 
-Make sure you have the following installed on your machine:
+## 🔎 Smart Search
 
-- [Git](https://git-scm.com/)
-- [Node.js](https://nodejs.org/en)
-- [npm](https://www.npmjs.com/) (Node Package Manager)
+Quickly find videos.
 
-**Cloning the Repository**
+### Features
+
+- Search by title
+- Instant filtering
+- Fast navigation
+- Organized content management
+
+---
+
+## 📊 Video Metadata
+
+Access detailed information about every video.
+
+### Features
+
+- Video ID
+- Shareable URL
+- Upload details
+- Video information management
+
+---
+
+# 🛠️ Tech Stack
+
+## ⚛️ Frontend
+
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+
+---
+
+## ☁️ Video Infrastructure
+
+- Bunny.net
+
+---
+
+## 🗄️ Database
+
+- Xata
+
+---
+
+## 🔐 Authentication
+
+- Better Auth
+
+---
+
+## 🛡️ Security
+
+- Arcjet
+
+---
+
+## 🧩 ORM
+
+- Drizzle ORM
+
+---
+
+# 🚀 Getting Started
+
+## 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/adrianhajdin/screen_recording_sharing_app.git
-cd screen_recording_sharing_app
+git clone https://github.com/yourusername/screenflow.git
+
+cd screenflow
 ```
 
-**Installation**
+---
 
-Install the project dependencies using npm:
+## 2️⃣ Install Dependencies
 
 ```bash
 npm install
 ```
 
-**Set Up Environment Variables**
+---
 
-Create a new file named `.env` in the root of your project and add the following content:
+## 3️⃣ Configure Environment Variables
+
+Create a `.env.local` file:
 
 ```env
-# Next.js
-NEXT_PUBLIC_BASE_URL=http://localhost:3000
-
-# Neon PostgreSQL
 DATABASE_URL=
 
-# Google
+BETTER_AUTH_SECRET=
+BETTER_AUTH_URL=
+
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 
-# BetterAuth
-BETTER_AUTH_SECRET=
-BETTER_AUTH_URL=http://localhost:3000
-
-# Bunny
-BUNNY_STORAGE_ACCESS_KEY=
+BUNNY_STORAGE_ZONE=
+BUNNY_API_KEY=
 BUNNY_LIBRARY_ID=
-BUNNY_STREAM_ACCESS_KEY=
 
+ARCJET_KEY=
 ```
 
-Replace the placeholder values with your actual credentials. You can obtain these credentials by signing up on: [Better-Auth](https://www.better-auth.com), [Google Cloud](https://console.cloud.google.com), [Bunny.net](https://jsm.dev/snapcast-bunny), [Neon](https://neon.tech/).
+---
 
-**Running the Project**
+## 4️⃣ Run Development Server
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to view the project.
+Open:
 
+```
+http://localhost:3000
+```
 
-## <a name="links">🔗 Assets</a>
+---
 
-Assets and snippets used in the project can be found in the **[video kit](https://jsm.dev/snapcast-kit)**.
+# 🔄 System Architecture
 
-<a href="https://jsm.dev/snapcast-kit" target="_blank">
-  <img src="public/readme/videokit.jpg" alt="Video Kit Banner">
-</a>
+```text
+            User
+              │
+              ▼
+      Next.js Frontend
+              │
+              ▼
+      Better Auth Login
+              │
+              ▼
+    Screen Recording Module
+              │
+              ▼
+      Bunny.net Storage
+              │
+              ▼
+      AI Transcript Engine
+              │
+              ▼
+      Xata Database
+              │
+              ▼
+      Search & Metadata
+              │
+              ▼
+      Public / Private Sharing
+```
 
-## <a name="more">🚀 More</a>
+---
 
-**Advance your skills with Next.js Pro Course**
+# 🌟 Key Highlights
 
-Enjoyed creating this project? Dive deeper into our PRO courses for a richer learning adventure. They're packed with
-detailed explanations, cool features, and exercises to boost your skills. Give it a go!
+- 🎥 Browser-based screen recording
+- ☁️ High-performance video hosting
+- 🤖 AI-generated transcripts
+- 🔗 Shareable video links
+- 🔒 Public & private privacy controls
+- 🛡️ Advanced security with Arcjet
+- 🔍 Intelligent video search
+- 📊 Rich video metadata
+- ⚡ Fast and scalable architecture
+- 📱 Fully responsive UI
 
-<a href="https://jsm.dev/snapcast-jsmpro" target="_blank">
-  <img src="public/readme/jsmpro.jpg" alt="Project Banner">
-</a>
+---
+
+# 💡 What This Project Demonstrates
+
+This project showcases expertise in:
+
+- Full-stack Next.js development
+- Video streaming platforms
+- Secure authentication systems
+- AI-powered media applications
+- Cloud video infrastructure
+- Scalable database architecture
+- Modern UI/UX development
+- Type-safe backend development
+
+---
+
+# 🚀 Future Improvements
+
+- Video comments
+- Folder organization
+- Team workspaces
+- Video analytics
+- Custom thumbnails
+- Video trimming
+- Real-time collaboration
+- Mobile application
+
+---
+
+# ❤️ Final Note
+
+ScreenFlow is a production-ready screen recording and video sharing platform that combines modern web technologies, cloud video infrastructure, AI-powered transcripts, and enterprise-grade security into a seamless user experience.
+
+---
+
+<div align="center">
+
+## 🎥 Record • Share • Collaborate
+
+**Next.js • Bunny.net • Better Auth • Arcjet 🚀**
+
+</div>
