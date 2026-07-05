@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Banner](/public/assets/images/banner.png)
+![Banner](image.png)
 
 ![Next.js](https://img.shields.io/badge/Next.js-FullStack-black?style=for-the-badge&logo=next.js)
 ![Bunny.net](https://img.shields.io/badge/Bunny.net-Video_Storage-FF6600?style=for-the-badge)
