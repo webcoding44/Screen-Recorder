@@ -1,18 +1,26 @@
 "use client";
 
-import { cn, createIframeLink } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import {
   incrementVideoViews,
   getVideoProcessingStatus,
+  getNeonPlaybackUrl,
 } from "@/lib/actions/video";
 import { initialVideoState } from "@/constants";
 
 const VideoPlayer = ({ videoId, className }: VideoPlayerProps) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [playbackUrl, setPlaybackUrl] = useState<string | null>(null);
   const [state, setState] = useState(initialVideoState);
 
   useEffect(() => {
+    getNeonPlaybackUrl(videoId).then(({ playbackUrl }) => {
+      setPlaybackUrl(playbackUrl);
+    }).catch((error) => {
+      console.error("Failed to get playback URL:", error);
+    });
+
     const checkProcessingStatus = async () => {
       const status = await getVideoProcessingStatus(videoId);
       setState((prev) => ({
@@ -58,16 +66,28 @@ const VideoPlayer = ({ videoId, className }: VideoPlayerProps) => {
           <p>Processing video...</p>
         </div>
       ) : (
-<iframe
-  ref={iframeRef}
-  src={`https://iframe.mediadelivery.net/embed/697009/${videoId}`}
-  loading="lazy"
-  title="Video player"
-  style={{ border: 0, zIndex: 50 }}
-  allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
-  allowFullScreen
-  onLoad={() => setState((prev) => ({ ...prev, isLoaded: true }))}
-/>
+        playbackUrl ? (
+          <video
+            controls
+            preload="metadata"
+            src={playbackUrl}
+            style={{ width: "100%", height: "100%" }}
+            onLoadedMetadata={() =>
+              setState((prev) => ({ ...prev, isLoaded: true }))
+            }
+          />
+        ) : (
+          <iframe
+            ref={iframeRef}
+            src={`https://iframe.mediadelivery.net/embed/697009/${videoId}`}
+            loading="lazy"
+            title="Video player"
+            style={{ border: 0, zIndex: 50 }}
+            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen
+            onLoad={() => setState((prev) => ({ ...prev, isLoaded: true }))}
+          />
+        )
       )}
     </div>
   );

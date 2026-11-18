@@ -8,16 +8,19 @@ import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import {apiFetch, doesTitleMatch, getEnv, getOrderByClause, withErrorHandling} from "@/lib/utils";
 import { BUNNY } from "@/constants";
+import { MAX_THUMBNAIL_SIZE, MAX_VIDEO_SIZE } from "@/constants";
+import {
+  createNeonPresignedGet,
+  createNeonPresignedUpload,
+  deleteNeonObject,
+  parseNeonObjectUri,
+  verifyNeonObject,
+} from "@/lib/storage/neon";
 
 // Constants with full names
 const VIDEO_STREAM_BASE_URL = BUNNY.STREAM_BASE_URL;
 const THUMBNAIL_STORAGE_BASE_URL = BUNNY.STORAGE_BASE_URL;
-const THUMBNAIL_CDN_URL = BUNNY.CDN_URL;
-const BUNNY_LIBRARY_ID = getEnv("BUNNY_LIBRARY_ID");
-const ACCESS_KEYS = {
-  streamAccessKey: getEnv("BUNNY_STREAM_ACCESS_KEY"),
-  storageAccessKey: getEnv("BUNNY_STORAGE_ACCESS_KEY"),
-};
+const getBunnyLibraryId = () => getEnv("BUNNY_LIBRARY_ID");
 
 // Helper functions with descriptive names
 const revalidatePaths = (paths: string[]) => {
@@ -40,35 +43,50 @@ const buildVideoWithUserQuery = () =>
     .leftJoin(user, eq(videos.userId, user.id));
 
 // Server Actions
-export const getVideoUploadUrl = withErrorHandling(async () => {
-  await getSessionUserId();
-  const videoResponse = await apiFetch<BunnyVideoResponse>(
-    `${VIDEO_STREAM_BASE_URL}/${BUNNY_LIBRARY_ID}/videos`,
-    {
-      method: "POST",
-      bunnyType: "stream",
-      body: { title: "Temp Title", collectionId: "" },
+export const getVideoUploadUrl = withErrorHandling(
+  async (contentType: string, fileSize: number) => {
+    const userId = await getSessionUserId();
+    if (!contentType.startsWith("video/")) {
+      throw new Error("Only video files are allowed");
     }
-  );
-
-  const uploadUrl = `${VIDEO_STREAM_BASE_URL}/${BUNNY_LIBRARY_ID}/videos/${videoResponse.guid}`;
-  return {
-    videoId: videoResponse.guid,
-    uploadUrl,
-    accessKey: ACCESS_KEYS.streamAccessKey,
-  };
-});
+    if (!Number.isFinite(fileSize) || fileSize <= 0 || fileSize > MAX_VIDEO_SIZE) {
+      throw new Error("Video exceeds the maximum allowed size");
+    }
+    const upload = await createNeonPresignedUpload(
+      userId,
+      contentType,
+      "video",
+    );
+    const videoId = upload.objectKey.split("/").pop()?.replace(/\.[^.]+$/, "") ?? upload.objectKey;
+    return {
+      videoId,
+      objectKey: upload.objectKey,
+      videoUri: upload.uri,
+      uploadUrl: upload.uploadUrl,
+      contentType,
+    };
+  }
+);
 
 export const getThumbnailUploadUrl = withErrorHandling(
-  async (videoId: string) => {
-    const timestampedFileName = `${Date.now()}-${videoId}-thumbnail`;
-    const uploadUrl = `${THUMBNAIL_STORAGE_BASE_URL}/thumbnails/${timestampedFileName}`;
-    const cdnUrl = `${THUMBNAIL_CDN_URL}/thumbnails/${timestampedFileName}`;
-
+  async (_videoId: string, contentType: string, fileSize: number) => {
+    const userId = await getSessionUserId();
+    if (!contentType.startsWith("image/")) {
+      throw new Error("Only image thumbnails are allowed");
+    }
+    if (!Number.isFinite(fileSize) || fileSize <= 0 || fileSize > MAX_THUMBNAIL_SIZE) {
+      throw new Error("Thumbnail exceeds the maximum allowed size");
+    }
+    const upload = await createNeonPresignedUpload(
+      userId,
+      contentType,
+      "thumbnail",
+    );
     return {
-      uploadUrl,
-      cdnUrl,
-      accessKey: ACCESS_KEYS.storageAccessKey,
+      uploadUrl: upload.uploadUrl,
+      thumbnailUri: upload.uri,
+      objectKey: upload.objectKey,
+      contentType,
     };
   }
 );
@@ -76,22 +94,27 @@ export const getThumbnailUploadUrl = withErrorHandling(
 export const saveVideoDetails = withErrorHandling(
   async (videoDetails: VideoDetails) => {
     const userId = await getSessionUserId();
-    await apiFetch(
-      `${VIDEO_STREAM_BASE_URL}/${BUNNY_LIBRARY_ID}/videos/${videoDetails.videoId}`,
-      {
-        method: "POST",
-        bunnyType: "stream",
-        body: {
-          title: videoDetails.title,
-          description: videoDetails.description,
-        },
-      }
-    );
+    const videoObject = videoDetails.videoUri
+      ? parseNeonObjectUri(videoDetails.videoUri)
+      : null;
+    const thumbnailObject = videoDetails.thumbnailUrl
+      ? parseNeonObjectUri(videoDetails.thumbnailUrl)
+      : null;
+    if (!videoObject || !thumbnailObject) {
+      throw new Error("Invalid or missing Neon object identifier");
+    }
+    await verifyNeonObject(videoObject.key);
+    await verifyNeonObject(thumbnailObject.key);
 
     const now = new Date();
     await db.insert(videos).values({
-      ...videoDetails,
-      videoUrl: `${BUNNY.EMBED_URL}/${BUNNY_LIBRARY_ID}/${videoDetails.videoId}`,
+      title: videoDetails.title,
+      description: videoDetails.description,
+      thumbnailUrl: videoDetails.thumbnailUrl,
+      videoUrl: videoDetails.videoUri!,
+      videoId: videoDetails.videoId,
+      visibility: videoDetails.visibility,
+      duration: videoDetails.duration,
       userId,
       createdAt: now,
       updatedAt: now,
@@ -142,8 +165,23 @@ export const getAllVideos = withErrorHandling(async (
       .limit(pageSize)
       .offset((pageNumber - 1) * pageSize);
 
+    const resolvedVideos = await Promise.all(
+      videoRecords.map(async ({ video, user }) => {
+        const thumbnail = parseNeonObjectUri(video.thumbnailUrl);
+        return {
+          video: thumbnail
+            ? {
+                ...video,
+                thumbnailUrl: await createNeonPresignedGet(thumbnail.key, "image/jpeg"),
+              }
+            : { ...video, thumbnailUrl: video.thumbnailUrl },
+          user,
+        };
+      }),
+    );
+
     return {
-      videos: videoRecords,
+      videos: resolvedVideos,
       pagination: {
         currentPage: pageNumber,
         totalPages,
@@ -161,7 +199,44 @@ export const getVideoById = withErrorHandling(async (videoId: string) => {
   return videoRecord;
 });
 
+export const getNeonPlaybackUrl = withErrorHandling(
+  async (videoId: string) => {
+    const [videoRecord] = await db
+      .select()
+      .from(videos)
+      .where(eq(videos.videoId, videoId));
+    if (!videoRecord) throw new Error("Video not found");
+
+    const neonObject = parseNeonObjectUri(videoRecord.videoUrl);
+    if (!neonObject) return { playbackUrl: null };
+
+    if (videoRecord.visibility === "private") {
+      const userId = await getSessionUserId();
+      if (userId !== videoRecord.userId) {
+        throw new Error("Unauthorized");
+      }
+    }
+
+    const contentType = neonObject.key.endsWith(".mp4")
+      ? "video/mp4"
+      : neonObject.key.endsWith(".webm")
+        ? "video/webm"
+        : neonObject.key.endsWith(".mov")
+          ? "video/quicktime"
+          : "application/octet-stream";
+    return {
+      playbackUrl: await createNeonPresignedGet(neonObject.key, contentType),
+    };
+  }
+);
+
 export const getTranscript = withErrorHandling(async (videoId: string) => {
+  const [videoRecord] = await db
+    .select({ videoUrl: videos.videoUrl })
+    .from(videos)
+    .where(eq(videos.videoId, videoId));
+  if (videoRecord?.videoUrl.startsWith("neon://")) return "";
+
   const response = await fetch(
     `${BUNNY.TRANSCRIPT_URL}/${videoId}/captions/en-auto.vtt`
   );
@@ -214,13 +289,35 @@ export const getAllVideosByUser = withErrorHandling(
       .orderBy(
         sortFilter ? getOrderByClause(sortFilter) : desc(videos.createdAt)
       );
+    const resolvedVideos = await Promise.all(
+      userVideos.map(async ({ video, user }) => {
+        const thumbnail = parseNeonObjectUri(video.thumbnailUrl);
+        return {
+          video: thumbnail
+            ? {
+                ...video,
+                thumbnailUrl: await createNeonPresignedGet(thumbnail.key, "image/jpeg"),
+              }
+            : { ...video, thumbnailUrl: video.thumbnailUrl },
+          user,
+        };
+      }),
+    );
 
-    return { user: userInfo, videos: userVideos, count: userVideos.length };
+    return { user: userInfo, videos: resolvedVideos, count: resolvedVideos.length };
   }
 );
 
 export const updateVideoVisibility = withErrorHandling(
   async (videoId: string, visibility: Visibility) => {
+    const userId = await getSessionUserId();
+    const [videoRecord] = await db
+      .select({ userId: videos.userId })
+      .from(videos)
+      .where(eq(videos.videoId, videoId));
+    if (!videoRecord || videoRecord.userId !== userId) {
+      throw new Error("Unauthorized");
+    }
     await db
       .update(videos)
       .set({ visibility, updatedAt: new Date() })
@@ -233,8 +330,19 @@ export const updateVideoVisibility = withErrorHandling(
 
 export const getVideoProcessingStatus = withErrorHandling(
   async (videoId: string) => {
+    const [videoRecord] = await db
+      .select({ videoUrl: videos.videoUrl })
+      .from(videos)
+      .where(eq(videos.videoId, videoId));
+    if (videoRecord?.videoUrl.startsWith("neon://")) {
+      return {
+        isProcessed: true,
+        encodingProgress: 100,
+        status: 4,
+      };
+    }
     const processingInfo = await apiFetch<BunnyVideoResponse>(
-      `${VIDEO_STREAM_BASE_URL}/${BUNNY_LIBRARY_ID}/videos/${videoId}`,
+      `${VIDEO_STREAM_BASE_URL}/${getBunnyLibraryId()}/videos/${videoId}`,
       { bunnyType: "stream" }
     );
 
@@ -248,16 +356,35 @@ export const getVideoProcessingStatus = withErrorHandling(
 
 export const deleteVideo = withErrorHandling(
   async (videoId: string, thumbnailUrl: string) => {
-    await apiFetch(
-      `${VIDEO_STREAM_BASE_URL}/${BUNNY_LIBRARY_ID}/videos/${videoId}`,
-      { method: "DELETE", bunnyType: "stream" }
+    const userId = await getSessionUserId();
+    const [videoRecord] = await db
+      .select()
+      .from(videos)
+      .where(eq(videos.videoId, videoId));
+    if (!videoRecord) return {};
+    if (videoRecord.userId !== userId) throw new Error("Unauthorized");
+
+    const videoObject = parseNeonObjectUri(videoRecord.videoUrl);
+    const thumbnailObject = parseNeonObjectUri(
+      videoRecord.thumbnailUrl || thumbnailUrl,
     );
 
-    const thumbnailPath = thumbnailUrl.split("thumbnails/")[1];
-    await apiFetch(
-      `${THUMBNAIL_STORAGE_BASE_URL}/thumbnails/${thumbnailPath}`,
-      { method: "DELETE", bunnyType: "storage", expectJson: false }
-    );
+    if (videoObject || thumbnailObject) {
+      if (videoObject) await deleteNeonObject(videoObject.key);
+      if (thumbnailObject) await deleteNeonObject(thumbnailObject.key);
+    } else {
+      await apiFetch(
+        `${VIDEO_STREAM_BASE_URL}/${getBunnyLibraryId()}/videos/${videoId}`,
+        { method: "DELETE", bunnyType: "stream" }
+      );
+      const thumbnailPath = thumbnailUrl.split("thumbnails/")[1];
+      if (thumbnailPath) {
+        await apiFetch(
+          `${THUMBNAIL_STORAGE_BASE_URL}/thumbnails/${thumbnailPath}`,
+          { method: "DELETE", bunnyType: "storage", expectJson: false }
+        );
+      }
+    }
 
     await db.delete(videos).where(eq(videos.videoId, videoId));
     revalidatePaths(["/", `/video/${videoId}`]);

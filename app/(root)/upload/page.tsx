@@ -11,16 +11,14 @@ import { FileInput, FormField } from '@/components';
 import { useFileInput } from '@/lib/hooks/useFileInput';
 import { MAX_THUMBNAIL_SIZE, MAX_VIDEO_SIZE } from '@/constants';
 
-const uploadFileToBunny = (
+const uploadFileToStorage = (
   file: File,
   uploadUrl: string,
-  accessKey: string,
 ): Promise<void> =>
   fetch(uploadUrl, {
     method: 'PUT',
     headers: {
       'Content-Type': file.type,
-      AccessKey: accessKey,
     },
     body: file,
   }).then((response) => {
@@ -109,32 +107,44 @@ const UploadPage = () => {
       const {
         videoId,
         uploadUrl: videoUploadUrl,
-        accessKey: videoAccessKey,
-      } = await getVideoUploadUrl();
+        videoUri,
+        contentType: videoContentType,
+      } = await getVideoUploadUrl(video.file.type, video.file.size);
 
-      if (!videoUploadUrl || !videoAccessKey)
+      if (!videoUploadUrl || !videoUri)
         throw new Error('Failed to get video upload credentials');
 
-      await uploadFileToBunny(video.file, videoUploadUrl, videoAccessKey);
+      await uploadFileToStorage(
+        new File([video.file], video.file.name, {
+          type: videoContentType,
+        }),
+        videoUploadUrl,
+      );
 
       const {
         uploadUrl: thumbnailUploadUrl,
-        cdnUrl: thumbnailCdnUrl,
-        accessKey: thumbnailAccessKey,
-      } = await getThumbnailUploadUrl(videoId);
+        thumbnailUri,
+        contentType: thumbnailContentType,
+      } = await getThumbnailUploadUrl(
+        videoId,
+        thumbnail.file.type,
+        thumbnail.file.size,
+      );
 
-      if (!thumbnailUploadUrl || !thumbnailCdnUrl || !thumbnailAccessKey)
+      if (!thumbnailUploadUrl || !thumbnailUri)
         throw new Error('Failed to get thumbnail upload credentials');
 
-      await uploadFileToBunny(
-        thumbnail.file,
+      await uploadFileToStorage(
+        new File([thumbnail.file], thumbnail.file.name, {
+          type: thumbnailContentType,
+        }),
         thumbnailUploadUrl,
-        thumbnailAccessKey,
       );
 
       await saveVideoDetails({
         videoId,
-        thumbnailUrl: thumbnailCdnUrl,
+        thumbnailUrl: thumbnailUri,
+        videoUri,
         ...formData,
         duration: videoDuration,
       });
