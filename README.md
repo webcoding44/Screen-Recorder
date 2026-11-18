@@ -2,18 +2,18 @@
 
 <div align="center">
 
-![Banner](image.png)
+![Banner](image.jpeg)
 
 ![Next.js](https://img.shields.io/badge/Next.js-FullStack-black?style=for-the-badge&logo=next.js)
-![Bunny.net](https://img.shields.io/badge/Bunny.net-Video_Storage-FF6600?style=for-the-badge)
+![Neon](https://img.shields.io/badge/Neon-Video_Storage-FF6600?style=for-the-badge)
 ![Better Auth](https://img.shields.io/badge/Better_Auth-Authentication-22C55E?style=for-the-badge)
 ![Arcjet](https://img.shields.io/badge/Arcjet-Security-blue?style=for-the-badge)
-![Xata](https://img.shields.io/badge/Xata-Database-7C3AED?style=for-the-badge)
+![Neon](https://img.shields.io/badge/Neon-Database-7C3AED?style=for-the-badge)
 ![Drizzle ORM](https://img.shields.io/badge/Drizzle-ORM-C5F74F?style=for-the-badge)
 
-### 🚀 AI-Powered Screen Recording & Video Sharing Platform
+### 🚀 Screen Recording & Video Sharing Platform
 
-Record your screen, upload videos, generate AI transcripts, and securely share content through a modern full-stack application.
+Record your screen, upload videos, and securely share content through a modern full-stack application.
 
 </div>
 
@@ -21,9 +21,9 @@ Record your screen, upload videos, generate AI transcripts, and securely share c
 
 # 📖 Overview
 
-**ScreenFlow** is a modern full-stack screen recording and video sharing platform that enables users to record their screens, upload videos, generate AI-powered transcripts, and share content securely.
+**ScreenFlow** is a modern full-stack screen recording and video sharing platform that enables users to record their screens, upload videos, and share content securely.
 
-Built with **Next.js**, **Bunny.net**, **Better Auth**, **Arcjet**, **Xata**, and **Drizzle ORM**, the platform combines high-performance video hosting, secure authentication, intelligent search, and scalable infrastructure into a production-ready application.
+Built with **Next.js**, **Object-storage Neon**, **Better Auth**, **Arcjet**, **Neon**, and **Drizzle ORM**, the platform combines high-performance video hosting, secure authentication, intelligent search, and scalable infrastructure into a production-ready application.
 
 ---
 
@@ -68,19 +68,6 @@ Share videos effortlessly.
 
 ---
 
-## 🤖 AI Transcripts
-
-Automatically generate transcripts for uploaded videos.
-
-### Features
-
-- AI-generated transcripts
-- Searchable content
-- Improved accessibility
-- Faster content discovery
-
----
-
 ## 🔐 Authentication & Security
 
 Secure user accounts and application infrastructure.
@@ -94,32 +81,6 @@ Secure user accounts and application infrastructure.
 
 ---
 
-## 🛡️ Advanced Protection
-
-Powered by Arcjet security.
-
-### Features
-
-- Bot protection
-- Rate limiting
-- Email validation
-- Attack prevention
-
----
-
-## 🔎 Smart Search
-
-Quickly find videos.
-
-### Features
-
-- Search by title
-- Instant filtering
-- Fast navigation
-- Organized content management
-
----
-
 ## 📊 Video Metadata
 
 Access detailed information about every video.
@@ -130,47 +91,6 @@ Access detailed information about every video.
 - Shareable URL
 - Upload details
 - Video information management
-
----
-
-# 🛠️ Tech Stack
-
-## ⚛️ Frontend
-
-- Next.js
-- React
-- TypeScript
-- Tailwind CSS
-
----
-
-## ☁️ Video Infrastructure
-
-- Bunny.net
-
----
-
-## 🗄️ Database
-
-- Xata
-
----
-
-## 🔐 Authentication
-
-- Better Auth
-
----
-
-## 🛡️ Security
-
-- Arcjet
-
----
-
-## 🧩 ORM
-
-- Drizzle ORM
 
 ---
 
@@ -207,11 +127,11 @@ BETTER_AUTH_URL=
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 
-BUNNY_STORAGE_ZONE=
-BUNNY_API_KEY=
-BUNNY_LIBRARY_ID=
 
-ARCJET_KEY=
+# S3-compatible storage. Generate a credential to fill in the key ID + secret.
+AWS_ENDPOINT_URL_S3=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
 ```
 
 ---
@@ -228,37 +148,6 @@ Open:
 http://localhost:3000
 ```
 
----
-
-# 🔄 System Architecture
-
-```text
-            User
-              │
-              ▼
-      Next.js Frontend
-              │
-              ▼
-      Better Auth Login
-              │
-              ▼
-    Screen Recording Module
-              │
-              ▼
-      Bunny.net Storage
-              │
-              ▼
-      AI Transcript Engine
-              │
-              ▼
-      Xata Database
-              │
-              ▼
-      Search & Metadata
-              │
-              ▼
-      Public / Private Sharing
-```
 
 ---
 
@@ -266,7 +155,6 @@ http://localhost:3000
 
 - 🎥 Browser-based screen recording
 - ☁️ High-performance video hosting
-- 🤖 AI-generated transcripts
 - 🔗 Shareable video links
 - 🔒 Public & private privacy controls
 - 🛡️ Advanced security with Arcjet
@@ -274,34 +162,6 @@ http://localhost:3000
 - 📊 Rich video metadata
 - ⚡ Fast and scalable architecture
 - 📱 Fully responsive UI
-
----
-
-# 💡 What This Project Demonstrates
-
-This project showcases expertise in:
-
-- Full-stack Next.js development
-- Video streaming platforms
-- Secure authentication systems
-- AI-powered media applications
-- Cloud video infrastructure
-- Scalable database architecture
-- Modern UI/UX development
-- Type-safe backend development
-
----
-
-# 🚀 Future Improvements
-
-- Video comments
-- Folder organization
-- Team workspaces
-- Video analytics
-- Custom thumbnails
-- Video trimming
-- Real-time collaboration
-- Mobile application
 
 ---
 
@@ -314,7 +174,5 @@ ScreenFlow is a production-ready screen recording and video sharing platform tha
 <div align="center">
 
 ## 🎥 Record • Share • Collaborate
-
-**Next.js • Bunny.net • Better Auth • Arcjet 🚀**
 
 </div>
