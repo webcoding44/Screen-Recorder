@@ -5,7 +5,7 @@ import {
   boolean,
   uuid,
   integer,
-  jsonb,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
@@ -74,6 +74,26 @@ export const videos = pgTable("videos", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+export const videoFavorites = pgTable(
+  "video_favorites",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    videoId: uuid("video_id")
+      .notNull()
+      .references(() => videos.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    userVideoUnique: uniqueIndex("video_favorites_user_video_idx").on(
+      table.userId,
+      table.videoId,
+    ),
+  }),
+);
 
 export const schema = {
   user,

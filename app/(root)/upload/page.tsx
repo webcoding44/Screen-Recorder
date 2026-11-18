@@ -14,22 +14,35 @@ import { MAX_THUMBNAIL_SIZE, MAX_VIDEO_SIZE } from '@/constants';
 const uploadFileToStorage = (
   file: File,
   uploadUrl: string,
+  onProgress: (progress: number) => void,
 ): Promise<void> =>
-  fetch(uploadUrl, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': file.type,
-    },
-    body: file,
-  }).then((response) => {
-    if (!response.ok)
-      throw new Error(`Upload failed with status ${response.status}`);
+  new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('PUT', uploadUrl);
+    request.setRequestHeader('Content-Type', file.type);
+    request.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        onProgress(Math.round((event.loaded / event.total) * 100));
+      }
+    };
+    request.onload = () => {
+      if (request.status >= 200 && request.status < 300) {
+        onProgress(100);
+        resolve();
+      } else {
+        reject(new Error(`Upload failed with status ${request.status}`));
+      }
+    };
+    request.onerror = () => reject(new Error('Network error while uploading.'));
+    request.onabort = () => reject(new Error('Upload was cancelled.'));
+    request.send(file);
   });
 
 const UploadPage = () => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
   const [formData, setFormData] = useState<VideoFormValues>({
     title: '',
@@ -37,8 +50,8 @@ const UploadPage = () => {
     tags: '',
     visibility: 'public',
   });
-  const video = useFileInput(MAX_VIDEO_SIZE);
-  const thumbnail = useFileInput(MAX_THUMBNAIL_SIZE);
+  const video = useFileInput(MAX_VIDEO_SIZE, 'video/');
+  const thumbnail = useFileInput(MAX_THUMBNAIL_SIZE, 'image/');
 
   useEffect(() => {
     if (video.duration !== null) {
@@ -91,6 +104,8 @@ const UploadPage = () => {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
+    setError(null);
+    setUploadProgress(0);
     setIsSubmitting(true);
 
     try {
@@ -119,6 +134,7 @@ const UploadPage = () => {
           type: videoContentType,
         }),
         videoUploadUrl,
+        (progress) => setUploadProgress(Math.round(progress * 0.8)),
       );
 
       const {
@@ -139,6 +155,7 @@ const UploadPage = () => {
           type: thumbnailContentType,
         }),
         thumbnailUploadUrl,
+        (progress) => setUploadProgress(80 + Math.round(progress * 0.18)),
       );
 
       await saveVideoDetails({
@@ -149,6 +166,7 @@ const UploadPage = () => {
         duration: videoDuration,
       });
 
+      setUploadProgress(100);
       router.push(`/video/${videoId}`);
     } catch (error) {
       const message =
@@ -156,6 +174,7 @@ const UploadPage = () => {
           ? error.message
           : 'An unexpected error occurred.';
       setError(message);
+      setUploadProgress(0);
       console.error('Error submitting form:', error);
     } finally {
       setIsSubmitting(false);
@@ -195,7 +214,9 @@ const UploadPage = () => {
           previewUrl={video.previewUrl}
           inputRef={video.inputRef}
           onChange={video.handleFileChange}
+          onFileSelect={video.handleFileSelect}
           onReset={video.resetFile}
+          error={video.error}
           type='video'
         />
 
@@ -207,7 +228,9 @@ const UploadPage = () => {
           previewUrl={thumbnail.previewUrl}
           inputRef={thumbnail.inputRef}
           onChange={thumbnail.handleFileChange}
+          onFileSelect={thumbnail.handleFileSelect}
           onReset={thumbnail.resetFile}
+          error={thumbnail.error}
           type='image'
         />
 
@@ -230,6 +253,15 @@ const UploadPage = () => {
         >
           {isSubmitting ? 'Uploading...' : 'Upload Video'}
         </button>
+        {isSubmitting && (
+          <div className='upload-progress' role='status' aria-live='polite'>
+            <div className='upload-progress-heading'>
+              <span>Uploading video and thumbnail</span>
+              <span>{uploadProgress}%</span>
+            </div>
+            <progress value={uploadProgress} max={100} />
+          </div>
+        )}
       </form>
     </main>
   );

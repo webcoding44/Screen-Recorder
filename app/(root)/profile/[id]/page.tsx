@@ -7,7 +7,7 @@ const ProfilePage = async ({ params, searchParams }: ParamsWithSearch) => {
   const { id } = await params;
   const { query, filter } = await searchParams;
 
-  const { user, videos } = await getAllVideosByUser(id, query, filter);
+  const { user, videos, totalViews } = await getAllVideosByUser(id, query, filter);
   if (!user) redirect("/404");
 
   return (
@@ -17,10 +17,26 @@ const ProfilePage = async ({ params, searchParams }: ParamsWithSearch) => {
         title={user?.name}
         userImg={user?.image ?? ""}
       />
+      <section className="profile-stats" aria-label="Profile statistics">
+        <article>
+          <span>Videos</span>
+          <strong>{videos.length}</strong>
+        </article>
+        <article>
+          <span>Total views</span>
+          <strong>{totalViews.toLocaleString()}</strong>
+        </article>
+        <article>
+          <span>Public videos</span>
+          <strong>
+            {videos.filter(({ video }) => video.visibility === "public").length}
+          </strong>
+        </article>
+      </section>
 
       {videos?.length > 0 ? (
         <section className="video-grid">
-          {videos.map(({ video }) => (
+          {videos.map(({ video, isFavorite }) => (
             <VideoCard
               key={video.id}
               id={video.videoId}
@@ -32,6 +48,7 @@ const ProfilePage = async ({ params, searchParams }: ParamsWithSearch) => {
               views={video.views}
               visibility={video.visibility}
               duration={video.duration}
+              isFavorite={isFavorite}
             />
           ))}
         </section>

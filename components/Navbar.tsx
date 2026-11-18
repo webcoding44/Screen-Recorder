@@ -5,6 +5,7 @@ import { redirect, useRouter } from "next/navigation";
 
 import { authClient } from "@/lib/auth-client";
 import ImageWithFallback from "./ImageWithFallback";
+import ThemeToggle from "./ThemeToggle";
 const Navbar = () => {
   const router = useRouter();
   const { data: session } = authClient.useSession();
@@ -22,6 +23,15 @@ const Navbar = () => {
           />
           <h1>CaptureHub</h1>
         </Link>
+
+        <div className="navbar-actions">
+          {user && (
+            <Link href="/saved" className="saved-link">
+              Saved videos
+            </Link>
+          )}
+          <ThemeToggle />
+        </div>
 
         {user && (
           <figure>

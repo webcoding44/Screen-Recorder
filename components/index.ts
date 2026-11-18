@@ -1,5 +1,7 @@
 export { default as Navbar } from "./Navbar";
 export { default as VideoCard } from "./VideoCard";
+export { default as FavoriteButton } from "./FavoriteButton";
+export { default as ThemeToggle } from "./ThemeToggle";
 export { default as ImageWithFallback } from "./ImageWithFallback";
 export { default as FileInput } from "./FileInput";
 export { default as FormField } from "./FormField";

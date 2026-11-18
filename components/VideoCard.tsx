@@ -3,6 +3,7 @@ import Image from "next/image";
 import ImageWithFallback from "./ImageWithFallback";
 import Link from "next/link";
 import { useState } from "react";
+import FavoriteButton from "./FavoriteButton";
 
 const VideoCard = ({
   id,
@@ -14,6 +15,7 @@ const VideoCard = ({
   views,
   visibility,
   duration,
+  isFavorite = false,
 }: VideoCardProps) => {
   const [copied, setCopied] = useState(false);
 
@@ -28,16 +30,37 @@ const VideoCard = ({
   };
 
   return (
-    <Link href={`/video/${id}`} className="video-card">
-      <Image
-        src={thumbnail}
-        width={290}
-        height={160}
-        alt="thumbnail"
-        className="thumbnail"
-      />
-      <article>
-        <div>
+    <article className="video-card">
+      <Link href={`/video/${id}`} className="video-card-media">
+        <Image
+          src={thumbnail}
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          alt={`${title} thumbnail`}
+          className="thumbnail"
+        />
+        {duration && (
+          <span className="duration">{Math.ceil(duration / 60)} min</span>
+        )}
+      </Link>
+      <div className="video-card-actions">
+        <FavoriteButton videoId={id} initiallySaved={isFavorite} compact />
+        <button onClick={handleCopy} className="copy-btn" aria-label="Copy video link">
+          <Image
+            src={
+              copied ? "/assets/icons/checkmark.svg" : "/assets/icons/link.svg"
+            }
+            alt=""
+            width={18}
+            height={18}
+          />
+        </button>
+      </div>
+      <div className="video-card-content">
+        <Link href={`/video/${id}`} className="video-card-title">
+          <h2>{title}</h2>
+        </Link>
+        <div className="video-card-meta">
           <figure>
             <ImageWithFallback
               src={userImg}
@@ -61,29 +84,18 @@ const VideoCard = ({
             <span>{views}</span>
           </aside>
         </div>
-        <h2>
-          {title} -{" "}
-          {createdAt.toLocaleDateString("en-US", {
+        <footer>
+          <span>{visibility}</span>
+          <time dateTime={createdAt.toISOString()}>
+            {createdAt.toLocaleDateString("en-US", {
             year: "numeric",
             month: "short",
             day: "numeric",
-          })}
-        </h2>
-      </article>
-      <button onClick={handleCopy} className="copy-btn">
-        <Image
-          src={
-            copied ? "/assets/icons/checkmark.svg" : "/assets/icons/link.svg"
-          }
-          alt="Copy Link"
-          width={18}
-          height={18}
-        />
-      </button>
-      {duration && (
-        <div className="duration">{Math.ceil(duration / 60)}min</div>
-      )}
-    </Link>
+            })}
+          </time>
+        </footer>
+      </div>
+    </article>
   );
 };
 

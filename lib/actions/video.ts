@@ -1,10 +1,10 @@
 "use server";
 
 import { db } from "@/drizzle/db";
-import { videos, user } from "@/drizzle/schema";
+import { videos, user, videoFavorites } from "@/drizzle/schema";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import {apiFetch, doesTitleMatch, getEnv, getOrderByClause, withErrorHandling} from "@/lib/utils";
 import { BUNNY } from "@/constants";
@@ -41,6 +41,39 @@ const buildVideoWithUserQuery = () =>
     })
     .from(videos)
     .leftJoin(user, eq(videos.userId, user.id));
+
+const resolveThumbnail = async (video: typeof videos.$inferSelect) => {
+  const thumbnail = parseNeonObjectUri(video.thumbnailUrl);
+  return thumbnail
+    ? {
+        ...video,
+        thumbnailUrl: await createNeonPresignedGet(thumbnail.key, "image/jpeg"),
+      }
+    : video;
+};
+
+const hasFavoritesTable = async () => {
+  const result = await db.execute(
+    sql`select to_regclass('public.video_favorites') is not null as exists`,
+  );
+  return Boolean(result.rows[0]?.exists);
+};
+
+const getFavoriteVideoIds = async (userId: string, videoIds: string[]) => {
+  if (videoIds.length === 0 || !(await hasFavoritesTable())) {
+    return new Set<string>();
+  }
+  const favorites = await db
+    .select({ videoId: videoFavorites.videoId })
+    .from(videoFavorites)
+    .where(
+      and(
+        eq(videoFavorites.userId, userId),
+        inArray(videoFavorites.videoId, videoIds),
+      ),
+    );
+  return new Set(favorites.map(({ videoId }) => videoId));
+};
 
 // Server Actions
 export const getVideoUploadUrl = withErrorHandling(
@@ -165,17 +198,18 @@ export const getAllVideos = withErrorHandling(async (
       .limit(pageSize)
       .offset((pageNumber - 1) * pageSize);
 
+    const favoriteIds = currentUserId
+      ? await getFavoriteVideoIds(
+          currentUserId,
+          videoRecords.map(({ video }) => video.id),
+        )
+      : new Set<string>();
     const resolvedVideos = await Promise.all(
       videoRecords.map(async ({ video, user }) => {
-        const thumbnail = parseNeonObjectUri(video.thumbnailUrl);
         return {
-          video: thumbnail
-            ? {
-                ...video,
-                thumbnailUrl: await createNeonPresignedGet(thumbnail.key, "image/jpeg"),
-              }
-            : { ...video, thumbnailUrl: video.thumbnailUrl },
+          video: await resolveThumbnail(video),
           user,
+          isFavorite: favoriteIds.has(video.id),
         };
       }),
     );
@@ -196,7 +230,86 @@ export const getVideoById = withErrorHandling(async (videoId: string) => {
   const [videoRecord] = await buildVideoWithUserQuery().where(
     eq(videos.videoId, videoId)
   );
-  return videoRecord;
+  if (!videoRecord) return undefined;
+  const currentUserId = (
+    await auth.api.getSession({ headers: await headers() })
+  )?.user.id;
+  const isFavorite =
+    !!currentUserId &&
+    (await getFavoriteVideoIds(currentUserId, [videoRecord.video.id])).has(
+      videoRecord.video.id,
+    );
+  return { ...videoRecord, isFavorite };
+});
+
+export const toggleVideoFavorite = withErrorHandling(
+  async (videoId: string) => {
+    const userId = await getSessionUserId();
+    if (!(await hasFavoritesTable())) {
+      throw new Error(
+        "Saved videos are not set up yet. Apply the video favorites migration first.",
+      );
+    }
+    const [videoRecord] = await db
+      .select({
+        id: videos.id,
+        userId: videos.userId,
+        visibility: videos.visibility,
+      })
+      .from(videos)
+      .where(eq(videos.videoId, videoId));
+    if (!videoRecord) throw new Error("Video not found");
+    if (videoRecord.visibility === "private" && videoRecord.userId !== userId) {
+      throw new Error("Unauthorized");
+    }
+
+    const [existingFavorite] = await db
+      .select({ id: videoFavorites.id })
+      .from(videoFavorites)
+      .where(
+        and(
+          eq(videoFavorites.userId, userId),
+          eq(videoFavorites.videoId, videoRecord.id),
+        ),
+      );
+
+    if (existingFavorite) {
+      await db
+        .delete(videoFavorites)
+        .where(eq(videoFavorites.id, existingFavorite.id));
+    } else {
+      await db.insert(videoFavorites).values({
+        userId,
+        videoId: videoRecord.id,
+      });
+    }
+
+    revalidatePaths(["/", "/saved", `/video/${videoId}`, `/profile/${userId}`]);
+    return { isFavorite: !existingFavorite };
+  },
+);
+
+export const getSavedVideos = withErrorHandling(async () => {
+  const userId = await getSessionUserId();
+  if (!(await hasFavoritesTable())) return null;
+  const records = await db
+    .select({
+      video: videos,
+      user: { id: user.id, name: user.name, image: user.image },
+    })
+    .from(videoFavorites)
+    .innerJoin(videos, eq(videoFavorites.videoId, videos.id))
+    .leftJoin(user, eq(videos.userId, user.id))
+    .where(eq(videoFavorites.userId, userId))
+    .orderBy(desc(videoFavorites.createdAt));
+
+  return Promise.all(
+    records.map(async ({ video, user }) => ({
+      video: await resolveThumbnail(video),
+      user,
+      isFavorite: true,
+    })),
+  );
 });
 
 export const getNeonPlaybackUrl = withErrorHandling(
@@ -289,22 +402,31 @@ export const getAllVideosByUser = withErrorHandling(
       .orderBy(
         sortFilter ? getOrderByClause(sortFilter) : desc(videos.createdAt)
       );
+    const favoriteIds = currentUserId
+      ? await getFavoriteVideoIds(
+          currentUserId,
+          userVideos.map(({ video }) => video.id),
+        )
+      : new Set<string>();
     const resolvedVideos = await Promise.all(
       userVideos.map(async ({ video, user }) => {
-        const thumbnail = parseNeonObjectUri(video.thumbnailUrl);
         return {
-          video: thumbnail
-            ? {
-                ...video,
-                thumbnailUrl: await createNeonPresignedGet(thumbnail.key, "image/jpeg"),
-              }
-            : { ...video, thumbnailUrl: video.thumbnailUrl },
+          video: await resolveThumbnail(video),
           user,
+          isFavorite: favoriteIds.has(video.id),
         };
       }),
     );
 
-    return { user: userInfo, videos: resolvedVideos, count: resolvedVideos.length };
+    return {
+      user: userInfo,
+      videos: resolvedVideos,
+      count: resolvedVideos.length,
+      totalViews: resolvedVideos.reduce(
+        (total, { video }) => total + video.views,
+        0,
+      ),
+    };
   }
 );
 

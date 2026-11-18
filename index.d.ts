@@ -36,7 +36,9 @@ declare interface FileInputProps {
   previewUrl: string | null;
   inputRef: React.RefObject<HTMLInputElement | null>;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  onFileSelect: (file: File) => void;
   onReset: () => void;
+  error?: string | null;
   type: "video" | "image";
 }
 
@@ -79,6 +81,7 @@ declare interface VideoCardProps {
   views: number;
   visibility: Visibility;
   duration: number | null;
+  isFavorite?: boolean;
 }
 
 declare interface VideoDetailHeaderProps {
@@ -90,6 +93,7 @@ declare interface VideoDetailHeaderProps {
   ownerId: string;
   visibility: string;
   thumbnailUrl: string;
+  isFavorite?: boolean;
 }
 
 declare interface VideoPlayerProps {

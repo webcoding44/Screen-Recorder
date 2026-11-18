@@ -8,6 +8,7 @@ import { authClient } from "@/lib/auth-client";
 import { visibilities } from "@/constants";
 import DropdownList from "./DropdownList";
 import ImageWithFallback from "./ImageWithFallback";
+import FavoriteButton from "./FavoriteButton";
 
 const VideoDetailHeader = ({
   title,
@@ -18,6 +19,7 @@ const VideoDetailHeader = ({
   ownerId,
   visibility,
   thumbnailUrl,
+  isFavorite,
 }: VideoDetailHeaderProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -104,6 +106,7 @@ const VideoDetailHeader = ({
         </figure>
       </aside>
       <aside className="cta">
+        <FavoriteButton videoId={videoId} initiallySaved={isFavorite} />
         <button onClick={copyLink}>
           <Image
             src={

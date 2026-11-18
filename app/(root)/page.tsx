@@ -16,7 +16,7 @@ const page = async ({ searchParams }: SearchParams) => {
 
       {videos?.length > 0 ? (
         <section className="video-grid">
-          {videos.map(({ video, user }) => (
+          {videos.map(({ video, user, isFavorite }) => (
             <VideoCard
               key={video.id}
               id={video.videoId}
@@ -28,6 +28,7 @@ const page = async ({ searchParams }: SearchParams) => {
               views={video.views}
               visibility={video.visibility}
               duration={video.duration}
+              isFavorite={isFavorite}
             />
           ))}
         </section>
